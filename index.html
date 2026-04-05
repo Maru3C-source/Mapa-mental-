@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>イースター メキシコの場合 · Mapa Conceptual</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Kaisei+Decol:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg0: #f0f2f5;
+  --paper: #ffffff;
+  --ink: #0f3460;
+  --ink2: #3a4a6b;
+  --ink3: #8a95b0;
+  --navy: #0f3460;
+  --teal: #1a9a8e;
+  --gold: #b8720e;
+  --green: #1a7a4a;
+  --blue: #2563a8;
+  --violet: #6040b0;
+  --coral: #b83820;
+  --orange: #c06020;
+  --gray: #4a5068;
+  --rose: #a03060;
+  --shadow: 0 4px 24px rgba(15,52,96,0.14);
+  --shadow-sm: 0 2px 10px rgba(15,52,96,0.09);
+}
+html, body { width:100%; height:100%; background:var(--bg0); font-family:'Noto Sans JP',sans-serif; overflow:hidden; user-select:none; }
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.3;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+/* HEADER */
+#header {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.4rem;
+  padding:.65rem 1.4rem;
+  background:linear-gradient(135deg,rgba(15,52,96,0.97) 0%,rgba(26,26,46,0.97) 100%);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(78,205,196,0.2);
+}
+#header h1 { font-family:'Kaisei Decol',serif; font-size:1.05rem; font-weight:700; color:#fff; }
+#header h1 span { font-size:.65rem; font-weight:400; color:rgba(245,166,35,0.85); display:block; letter-spacing:.05em; }
+
+.controls { display:flex; gap:.45rem; align-items:center; flex-wrap:wrap; }
+.btn {
+  font-family:'Noto Sans JP',sans-serif; font-size:.68rem; font-weight:600;
+  border:1.5px solid rgba(255,255,255,0.2); border-radius:99px;
+  padding:.33rem .9rem; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7);
+  cursor:pointer; transition:all .18s; white-space:nowrap;
+}
+.btn.on  { background:rgba(78,205,196,0.25); color:#4ecdc4; border-color:rgba(78,205,196,0.5); }
+.btn:hover:not(.on) { border-color:rgba(255,255,255,0.5); color:#fff; }
+.btn-sm { font-size:.62rem; padding:.28rem .75rem; color:rgba(255,255,255,0.45); border-color:rgba(255,255,255,0.1); }
+.btn-sm:hover { color:rgba(255,255,255,0.8); border-color:rgba(255,255,255,0.35); }
+.btn-save {
+  font-size:.62rem; padding:.28rem .9rem; font-weight:700;
+  background:rgba(26,138,90,0.3); border-color:rgba(78,205,196,0.4); color:#4ecdc4;
+}
+.btn-save:hover { background:rgba(26,138,90,0.5); border-color:#4ecdc4; }
+.btn-save.ok { background:rgba(26,138,90,0.7); color:#fff; border-color:#4ecdc4; }
+
+/* CANVAS */
+#canvas { position:fixed; inset:0; top:50px; overflow:hidden; cursor:grab; }
+#canvas.grabbing { cursor:grabbing; }
+#world { position:absolute; width:3200px; height:2000px; transform-origin:0 0; }
+#lines { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.edge { stroke-width:1.8; fill:none; stroke-linecap:round; opacity:.4; transition:opacity .25s; }
+.edge.hi { opacity:1; stroke-width:2.8; }
+
+/* NODES */
+.node {
+  position:absolute; border-radius:14px; box-shadow:var(--shadow-sm);
+  cursor:grab; transition:box-shadow .18s, transform .18s;
+  break-inside:avoid; opacity:0; animation:fadeIn .4s forwards;
+}
+@keyframes fadeIn { to { opacity:1; } }
+.node:active { cursor:grabbing; }
+.node.dragging { box-shadow:var(--shadow); transform:scale(1.03); z-index:50!important; }
+
+.node-inner { border-radius:14px; overflow:hidden; border:1.5px solid rgba(15,52,96,0.11); background:var(--paper); }
+.node-head { display:flex; align-items:center; gap:.45rem; padding:.52rem .85rem .42rem; border-bottom:1px solid rgba(15,52,96,0.07); }
+.node-icon { font-size:1rem; line-height:1; }
+.node-cat  { font-size:.6rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+.node-body { padding:.68rem .85rem .78rem; }
+
+.jp-main { font-family:'Kaisei Decol',serif; font-size:1.15rem; font-weight:700; color:var(--ink); line-height:1.3; }
+.jp-read { font-size:.7rem; color:var(--ink3); margin-top:.12rem; line-height:1.5; }
+.es-text {
+  font-size:.76rem; color:var(--green); font-style:italic;
+  margin-top:.42rem; padding-top:.38rem; border-top:1px dashed rgba(15,52,96,0.1);
+  line-height:1.55; transition:opacity .22s, max-height .25s; max-height:120px; overflow:hidden;
+}
+.es-text.hide { opacity:0; max-height:0; padding-top:0; border-top:none; margin-top:0; }
+.jp-main.hide, .jp-read.hide { opacity:0; transition:opacity .22s; }
+
+.subs { margin-top:.5rem; display:flex; flex-direction:column; gap:.3rem; }
+.sub  { display:flex; gap:.42rem; align-items:flex-start; padding:.34rem .5rem; border-radius:8px; break-inside:avoid; }
+.sub-dot { width:5px; height:5px; border-radius:50%; margin-top:.46rem; flex-shrink:0; }
+.sub-jp  { font-size:.79rem; font-weight:700; color:var(--ink); line-height:1.4; }
+.sub-rd  { font-size:.64rem; color:var(--ink3); }
+.sub-es  { font-size:.71rem; color:var(--green); font-style:italic; line-height:1.4; transition:opacity .22s, max-height .22s; max-height:60px; overflow:hidden; }
+.sub-es.hide { opacity:0; max-height:0; }
+
+/* CENTER NODE */
+.node-center .node-inner {
+  background:linear-gradient(135deg,var(--navy) 0%,#1a1a3e 100%);
+  border-color:rgba(245,166,35,0.35);
+}
+.node-center .jp-main { color:#fff; font-size:1.35rem; }
+.node-center .jp-read { color:rgba(78,205,196,0.75); }
+.node-center .es-text { color:rgba(245,166,35,0.9); border-top-color:rgba(78,205,196,0.2); font-style:normal; font-weight:600; font-size:.8rem; }
+.node-center .node-head { border-bottom-color:rgba(245,166,35,0.18); }
+.node-center .node-cat  { color:rgba(245,166,35,0.7); }
+
+/* EDIT BTN */
+.edit-btn {
+  position:absolute; top:6px; right:6px; width:22px; height:22px;
+  background:rgba(255,255,255,0.92); border:1px solid rgba(15,52,96,0.15);
+  border-radius:6px; font-size:.7rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .15s; z-index:20; color:var(--ink2);
+}
+.node:hover .edit-btn { opacity:1; }
+.node-center .edit-btn { background:rgba(245,166,35,0.2); border-color:rgba(245,166,35,0.4); color:#f5a623; }
+
+/* COLOR THEMES */
+.t-gold   .node-head { background:#fdf4e3; } .t-gold   .node-cat { color:var(--gold); }   .t-gold   .sub { background:#fdf4e3; } .t-gold   .sub-dot { background:var(--gold); }
+.t-teal   .node-head { background:#e6f7f5; } .t-teal   .node-cat { color:var(--teal); }   .t-teal   .sub { background:#e6f7f5; } .t-teal   .sub-dot { background:var(--teal); }
+.t-blue   .node-head { background:#edf3fc; } .t-blue   .node-cat { color:var(--blue); }   .t-blue   .sub { background:#edf3fc; } .t-blue   .sub-dot { background:var(--blue); }
+.t-green  .node-head { background:#edf7f0; } .t-green  .node-cat { color:var(--green); }  .t-green  .sub { background:#edf7f0; } .t-green  .sub-dot { background:var(--green); }
+.t-violet .node-head { background:#f0ecfc; } .t-violet .node-cat { color:var(--violet); } .t-violet .sub { background:#f0ecfc; } .t-violet .sub-dot { background:var(--violet); }
+.t-coral  .node-head { background:#fdf0ee; } .t-coral  .node-cat { color:var(--coral); }  .t-coral  .sub { background:#fdf0ee; } .t-coral  .sub-dot { background:var(--coral); }
+.t-orange .node-head { background:#fdf3e8; } .t-orange .node-cat { color:var(--orange); } .t-orange .sub { background:#fdf3e8; } .t-orange .sub-dot { background:var(--orange); }
+.t-rose   .node-head { background:#fceef4; } .t-rose   .node-cat { color:var(--rose); }   .t-rose   .sub { background:#fceef4; } .t-rose   .sub-dot { background:var(--rose); }
+.t-gray   .node-head { background:#f0f2f5; } .t-gray   .node-cat { color:var(--gray); }   .t-gray   .sub { background:#f0f2f5; } .t-gray   .sub-dot { background:var(--gray); }
+
+/* ZOOM */
+#zoom-btns { position:fixed; bottom:1.2rem; right:1.2rem; display:flex; flex-direction:column; gap:.35rem; z-index:100; }
+.zbtn {
+  width:32px; height:32px; background:rgba(15,52,96,0.9); border:1.5px solid rgba(78,205,196,0.3);
+  border-radius:8px; font-size:1rem; color:rgba(255,255,255,0.8); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:all .15s; box-shadow:var(--shadow-sm);
+}
+.zbtn:hover { background:var(--navy); border-color:#4ecdc4; color:#4ecdc4; }
+
+/* HINT */
+#hint {
+  position:fixed; bottom:1.2rem; left:50%; transform:translateX(-50%);
+  font-size:.68rem; color:rgba(255,255,255,0.6); letter-spacing:.05em;
+  background:rgba(15,52,96,0.88); backdrop-filter:blur(8px);
+  padding:.38rem 1rem; border-radius:99px; border:1px solid rgba(78,205,196,0.2);
+  pointer-events:none; transition:opacity 1s; white-space:nowrap;
+}
+
+/* MODAL */
+#modal-overlay {
+  position:fixed; inset:0; background:rgba(15,52,96,0.55); backdrop-filter:blur(5px);
+  z-index:200; display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+#modal-overlay.open { opacity:1; pointer-events:all; }
+#modal {
+  background:var(--paper); border-radius:18px;
+  box-shadow:0 16px 60px rgba(15,52,96,0.28);
+  width:min(500px,92vw); max-height:86vh; overflow-y:auto;
+  padding:1.5rem 1.7rem 1.3rem;
+  border:1.5px solid rgba(15,52,96,0.1);
+  transform:translateY(10px) scale(.97); transition:transform .2s;
+}
+#modal-overlay.open #modal { transform:none; }
+#modal h2 { font-family:'Kaisei Decol',serif; font-size:1rem; font-weight:700; color:var(--ink); margin-bottom:1rem; }
+.fg { margin-bottom:.72rem; }
+.fg label { display:block; font-size:.61rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ink3); margin-bottom:.26rem; }
+.fg input {
+  width:100%; font-family:'Noto Sans JP',sans-serif; font-size:.86rem; color:var(--ink);
+  background:var(--bg0); border:1.5px solid rgba(15,52,96,0.13); border-radius:8px;
+  padding:.44rem .7rem; outline:none; transition:border-color .15s;
+}
+.fg input:focus { border-color:var(--navy); }
+.two-col { display:grid; grid-template-columns:80px 1fr; gap:.55rem; }
+.sub-lbl { display:grid; grid-template-columns:1fr 1fr 1fr 26px; gap:.35rem; margin-bottom:.2rem; }
+.sub-lbl span { font-size:.58rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink3); }
+.sub-row { display:grid; grid-template-columns:1fr 1fr 1fr 26px; gap:.35rem; align-items:center; margin-bottom:.32rem; }
+.sub-row input { font-size:.78rem; }
+.del-btn {
+  width:26px; height:26px; background:#fdf0ee; border:1px solid rgba(184,56,32,.2);
+  border-radius:6px; color:var(--coral); font-size:.8rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background .15s;
+}
+.del-btn:hover { background:#f9d5d3; }
+.add-sub {
+  font-size:.7rem; color:var(--teal); background:#e6f7f5;
+  border:1px dashed rgba(26,154,142,.3); border-radius:6px;
+  padding:.28rem .75rem; cursor:pointer; transition:background .15s; margin-top:.05rem;
+}
+.add-sub:hover { background:#c8eeeb; }
+.modal-hr { height:1px; background:rgba(15,52,96,0.07); margin:.85rem 0; }
+.modal-foot { display:flex; gap:.55rem; justify-content:flex-end; margin-top:.85rem; }
+.m-cancel {
+  font-size:.75rem; padding:.4rem 1rem; border:1.5px solid rgba(15,52,96,0.15);
+  border-radius:99px; background:transparent; color:var(--ink2); cursor:pointer; transition:all .15s;
+}
+.m-cancel:hover { border-color:var(--navy); color:var(--navy); }
+.m-ok {
+  font-size:.75rem; padding:.4rem 1.2rem; border:none; border-radius:99px;
+  background:var(--navy); color:#fff; cursor:pointer; font-weight:600; transition:opacity .15s;
+}
+.m-ok:hover { opacity:.82; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>イースター　メキシコの<ruby>場合<rt>ばあい</rt></ruby> <span>Semana Santa en México · Mapa Conceptual · Método Maru 3C</span></h1>
+  <div class="controls">
+    <button class="btn on" id="btn-jp" onclick="toggleLang('jp')">🇯🇵 日本語</button>
+    <button class="btn on" id="btn-es" onclick="toggleLang('es')">🇪🇸 Español</button>
+    <button class="btn btn-sm"  onclick="resetView()">⌂ Reset</button>
+    <button class="btn btn-save" id="btn-save" onclick="saveHTML()">💾 Guardar HTML</button>
+  </div>
+</div>
+
+<div id="canvas">
+  <div id="world">
+    <svg id="lines" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+</div>
+
+<div id="zoom-btns">
+  <button class="zbtn" onclick="zoom(1.15)">＋</button>
+  <button class="zbtn" onclick="zoom(0.87)">－</button>
+</div>
+<div id="hint">✦ Arrastra nodos · Scroll para zoom · ✎ para editar</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" onclick="overlayClick(event)">
+  <div id="modal">
+    <h2 id="modal-title">✎ Editar nodo</h2>
+    <div class="two-col">
+      <div class="fg"><label>Icono</label><input id="f-icon" maxlength="4" placeholder="✝️"></div>
+      <div class="fg"><label>Categoría</label><input id="f-cat" placeholder="じき · Época"></div>
+    </div>
+    <div class="fg"><label>🇯🇵 Principal (kanji / kana)</label><input id="f-jp" placeholder="イースター"></div>
+    <div class="fg"><label>🇯🇵 Furigana (lectura)</label><input id="f-rd" placeholder="いーすたー"></div>
+    <div class="fg"><label>🇪🇸 Traducción / explicación</label><input id="f-es" placeholder="Semana Santa / Pascua"></div>
+    <div class="modal-hr"></div>
+    <div class="fg">
+      <label>Sub-items (vocabulario / frases)</label>
+      <div class="sub-lbl"><span>🇯🇵 Japonés</span><span>Furigana</span><span>🇪🇸 Español</span><span></span></div>
+      <div id="sub-ed"></div>
+      <button class="add-sub" onclick="addSubRow()">＋ Añadir sub-item</button>
+    </div>
+    <div class="modal-foot">
+      <button class="m-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="m-ok"     onclick="applyEdit()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────
+const NODES = [
+  {
+    "id": "center",
+    "theme": "center",
+    "icon": "✝️",
+    "cat": "テーマ中心",
+    "jpMain": "イースター　メキシコの場合",
+    "jpRead": "メキシコのイースター (Semana Santa)",
+    "es": "Semana Santa en México",
+    "x": 1180,
+    "y": 700,
+    "w": 270,
+    "subs": []
+  },
+  {
+    "id": "retiro",
+    "theme": "t-gold",
+    "icon": "🙏",
+    "cat": "§1·2　リトリート",
+    "jpMain": "修行（リトリート）",
+    "jpRead": "しゅぎょう",
+    "es": "Retiro espiritual para encontrar a Dios",
+    "x": 620,
+    "y": 280,
+    "w": 250,
+    "subs": [
+      { "jp": "12〜18歳の若者たち", "rd": "わかものたち", "es": "Jóvenes de 12 a 18 años" },
+      { "jp": "4月ごろ · イースターの時期", "rd": "しがつ じき", "es": "Alrededor de abril, época de Pascua" },
+      { "jp": "2泊3日", "rd": "にはくみっか", "es": "Dos noches, tres días" },
+      { "jp": "学校の中庭で", "rd": "がっこうのなかにわ", "es": "En el patio del colegio" }
+    ]
+  },
+  {
+    "id": "viacrucis",
+    "theme": "t-coral",
+    "icon": "⛪",
+    "cat": "§2·6　十字架の道行",
+    "jpMain": "十字架の道行",
+    "jpRead": "じゅうじかのみちゆき",
+    "es": "Vía Crucis — recreado en el patio",
+    "x": 240,
+    "y": 560,
+    "w": 250,
+    "subs": [
+      { "jp": "再現する", "rd": "さいげんする", "es": "Recrear / representar" },
+      { "jp": "イエスが13回崩れ落ちた場面", "rd": "くずれおちた ばめん", "es": "Escena en que Jesús cae 13 veces" }
+    ]
+  },
+  {
+    "id": "keiko",
+    "theme": "t-orange",
+    "icon": "🔥",
+    "cat": "§3·4　からだの苦行",
+    "jpMain": "からだの修行",
+    "jpRead": "からだのしゅぎょう",
+    "es": "Penitencia corporal",
+    "x": 180,
+    "y": 880,
+    "w": 250,
+    "subs": [
+      { "jp": "シャツ・靴・靴下を脱ぐ", "rd": "ぬぐ", "es": "Quitarse camisa, zapatos y calcetines" },
+      { "jp": "ズボンの裾を捲り上げる", "rd": "まくりあげる", "es": "Arremangar el pantalón" },
+      { "jp": "地面が焼けるほど熱くても", "rd": "じめん やける あつい", "es": "Aunque el suelo esté hirviendo" },
+      { "jp": "校庭を歩き回る", "rd": "こうていをあるきまわる", "es": "Caminar descalzo por el patio" }
+    ]
+  },
+  {
+    "id": "imi",
+    "theme": "t-violet",
+    "icon": "💭",
+    "cat": "§5　意味・目的",
+    "jpMain": "体験する意味",
+    "jpRead": "たいけんするいみ",
+    "es": "El significado de la experiencia",
+    "x": 560,
+    "y": 1100,
+    "w": 245,
+    "subs": [
+      { "jp": "イエスが磔にされるまでに味わった苦しみ", "rd": "はりつけ くるしみ", "es": "El sufrimiento de Jesús antes de ser crucificado" },
+      { "jp": "自分たちも体験するため", "rd": "じぶんたち たいけん", "es": "Para vivirlo en carne propia" }
+    ]
+  },
+  {
+    "id": "rosario",
+    "theme": "t-blue",
+    "icon": "📿",
+    "cat": "§7　ロザリオの祈り",
+    "jpMain": "ロザリオの祈り",
+    "jpRead": "ロザリオのいのり",
+    "es": "Rezo del rosario",
+    "x": 240,
+    "y": 1220,
+    "w": 245,
+    "subs": [
+      { "jp": "熱い地面にうつ伏せになる", "rd": "じめん うつぶせ", "es": "Acostarse boca abajo en el suelo caliente" },
+      { "jp": "倒れる度に立ち止まる", "rd": "たおれる たびに", "es": "Detenerse cada vez que caen" },
+      { "jp": "数分間祈りを捧げる", "rd": "すうふんかん ささげる", "es": "Rezar durante varios minutos" }
+    ]
+  },
+  {
+    "id": "testimony",
+    "theme": "t-teal",
+    "icon": "🗣",
+    "cat": "§8　個人の証言",
+    "jpMain": "私の体験談",
+    "jpRead": "わたしのたいけんだん",
+    "es": "Testimonio personal",
+    "x": 900,
+    "y": 1180,
+    "w": 245,
+    "subs": [
+      { "jp": "罰みたいに聞こえるけど", "rd": "ばつ きこえる", "es": "Puede sonar como un castigo, pero…" },
+      { "jp": "中学の頃の反抗期だった私", "rd": "ちゅうがく はんこうき", "es": "Yo, en plena rebeldía de la secundaria" },
+      { "jp": "ガチでためになった", "rd": "", "es": "De verdad me sirvió mucho" }
+    ]
+  },
+  {
+    "id": "lent",
+    "theme": "t-green",
+    "icon": "📅",
+    "cat": "§9·11　レント（四旬節）",
+    "jpMain": "レント（四旬節）",
+    "jpRead": "しじゅんせつ",
+    "es": "Cuaresma — 40 días de ayuno",
+    "x": 1600,
+    "y": 1100,
+    "w": 255,
+    "subs": [
+      { "jp": "40日間の断食", "rd": "だんじき", "es": "Ayuno de 40 días" },
+      { "jp": "金曜日にご飯を抜いたり", "rd": "きんようび ぬく", "es": "Los viernes saltarse alguna comida" },
+      { "jp": "肉を食べなかったり", "rd": "にく たべない", "es": "No comer carne" }
+    ]
+  },
+  {
+    "id": "ceniza",
+    "theme": "t-gray",
+    "icon": "🕯️",
+    "cat": "§10　灰の水曜日",
+    "jpMain": "灰の水曜日",
+    "jpRead": "はいのすいようび",
+    "es": "Miércoles de Ceniza",
+    "x": 1760,
+    "y": 700,
+    "w": 240,
+    "subs": [
+      { "jp": "ほとんどの人がミサに行く", "rd": "みさ", "es": "La mayoría de las personas van a misa" }
+    ]
+  },
+  {
+    "id": "finale",
+    "theme": "t-rose",
+    "icon": "🌅",
+    "cat": "§12　クライマックス",
+    "jpMain": "聖金曜日→イースター日曜日",
+    "jpRead": "せいきんようび → にちようび",
+    "es": "Viernes Santo → Domingo de Pascua",
+    "x": 1600,
+    "y": 380,
+    "w": 260,
+    "subs": [
+      { "jp": "イエスが復活したのを祝う", "rd": "ふっかつ いわう", "es": "Celebrar la resurrección de Jesús" },
+      { "jp": "イースターの日曜日のミサまで続く", "rd": "つづく", "es": "Continúa hasta la misa del Domingo de Pascua" }
+    ]
+  }
+];
+
+const EDGES = [
+  { from:'center',    to:'retiro',    color:'#b8720e' },
+  { from:'center',    to:'viacrucis', color:'#b83820' },
+  { from:'center',    to:'keiko',     color:'#c06020' },
+  { from:'center',    to:'imi',       color:'#6040b0' },
+  { from:'center',    to:'rosario',   color:'#2563a8' },
+  { from:'center',    to:'testimony', color:'#1a9a8e' },
+  { from:'center',    to:'lent',      color:'#1a7a4a' },
+  { from:'center',    to:'ceniza',    color:'#4a5068' },
+  { from:'center',    to:'finale',    color:'#a03060' },
+  { from:'retiro',    to:'viacrucis', color:'#b8720e' },
+  { from:'viacrucis', to:'keiko',     color:'#b83820' },
+  { from:'keiko',     to:'rosario',   color:'#c06020' },
+  { from:'imi',       to:'testimony', color:'#6040b0' },
+  { from:'lent',      to:'ceniza',    color:'#1a7a4a' },
+  { from:'ceniza',    to:'finale',    color:'#4a5068' },
+];
+
+// ── STATE ──────────────────────────────────────────────────────────
+const nodePos = {}, nodeEls = {};
+let showJP = true, showES = true;
+let panX = 0, panY = 0, scale = 1;
+let isPanning = false, panStart = null;
+let dragNode = null, dragOff = { x:0, y:0 };
+let editingId = null;
+
+const world  = document.getElementById('world');
+const svgEl  = document.getElementById('lines');
+const canvas = document.getElementById('canvas');
+
+// ── RENDER ─────────────────────────────────────────────────────────
+function nodeHTML(n) {
+  const subs = (n.subs||[]).map(s => `
+    <div class="sub">
+      <div class="sub-dot"></div>
+      <div>
+        <div class="sub-jp">${s.jp}${s.rd ? ' <span class="sub-rd">'+s.rd+'</span>' : ''}</div>
+        <div class="sub-es es-item${showES?'':' hide'}">${s.es}</div>
+      </div>
+    </div>`).join('');
+  return `
+    <div class="node-inner">
+      <div class="node-head">
+        <span class="node-icon">${n.icon}</span>
+        <span class="node-cat">${n.cat}</span>
+      </div>
+      <div class="node-body">
+        <div class="jp-item jp-main${showJP?'':' hide'}">${n.jpMain}</div>
+        <div class="jp-item jp-read${showJP?'':' hide'}">${n.jpRead}</div>
+        ${n.es ? `<div class="es-text es-item${showES?'':' hide'}">${n.es}</div>` : ''}
+        ${n.subs&&n.subs.length ? `<div class="subs">${subs}</div>` : ''}
+      </div>
+    </div>
+    <button class="edit-btn" title="Editar" onclick="openModal(event,'${n.id}')">✎</button>`;
+}
+
+function buildNode(n, idx) {
+  nodePos[n.id] = { x:n.x, y:n.y };
+  const el = document.createElement('div');
+  el.id = 'nd-' + n.id;
+  el.className = `node ${n.id==='center' ? 'node-center' : n.theme}`;
+  el.style.cssText = `width:${n.w}px;left:${n.x}px;top:${n.y}px;z-index:${n.id==='center'?10:5};animation-delay:${idx*0.07}s`;
+  el.innerHTML = nodeHTML(n);
+  attachEvents(el, n.id);
+  world.appendChild(el);
+  nodeEls[n.id] = el;
+}
+
+function attachEvents(el, id) {
+  el.addEventListener('mousedown',  e => startDrag(e, id));
+  el.addEventListener('touchstart', e => startDrag(e, id), { passive:false });
+  el.addEventListener('mouseenter', () => highlightEdges(id, true));
+  el.addEventListener('mouseleave', () => highlightEdges(id, false));
+}
+
+NODES.forEach((n, i) => buildNode(n, i));
+
+// ── EDGES ──────────────────────────────────────────────────────────
+function nodeCenter(id) {
+  const p = nodePos[id], n = NODES.find(x => x.id===id);
+  return { x: p.x + n.w/2, y: p.y + nodeEls[id].offsetHeight/2 };
+}
+function buildEdges() {
+  svgEl.innerHTML = '';
+  EDGES.forEach(e => {
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.classList.add('edge');
+    p.dataset.from = e.from; p.dataset.to = e.to;
+    p.setAttribute('stroke', e.color);
+    svgEl.appendChild(p);
+  });
+  updateEdges();
+}
+buildEdges();
+
+function updateEdges() {
+  svgEl.querySelectorAll('.edge').forEach(p => {
+    const a = nodeCenter(p.dataset.from), b = nodeCenter(p.dataset.to);
+    const dx = b.x - a.x;
+    p.setAttribute('d',`M${a.x},${a.y} C${a.x+dx*.38},${a.y} ${b.x-dx*.38},${b.y} ${b.x},${b.y}`);
+  });
+}
+function highlightEdges(id, on) {
+  svgEl.querySelectorAll('.edge').forEach(p => {
+    const active = p.dataset.from===id || p.dataset.to===id;
+    p.classList.toggle('hi', on && active);
+    p.style.opacity = on ? (active ? '1' : '.08') : '.4';
+  });
+}
+
+// ── DRAG ───────────────────────────────────────────────────────────
+function startDrag(e, id) {
+  e.stopPropagation();
+  const t = e.touches ? e.touches[0] : e;
+  dragNode = id;
+  dragOff = { x: t.clientX/scale - nodePos[id].x, y: t.clientY/scale - nodePos[id].y };
+  nodeEls[id].classList.add('dragging');
+}
+function onMove(e) {
+  const t = e.touches ? e.touches[0] : e;
+  if (dragNode) {
+    e.preventDefault();
+    const x = t.clientX/scale - dragOff.x, y = t.clientY/scale - dragOff.y;
+    nodePos[dragNode] = {x, y};
+    nodeEls[dragNode].style.left = x+'px';
+    nodeEls[dragNode].style.top  = y+'px';
+    updateEdges();
+  } else if (isPanning) {
+    panX = panStart.px + (t.clientX - panStart.x);
+    panY = panStart.py + (t.clientY - panStart.y);
+    applyTransform();
+  }
+}
+function endDrag() {
+  if (dragNode) { nodeEls[dragNode].classList.remove('dragging'); dragNode = null; }
+  isPanning = false;
+}
+canvas.addEventListener('mousedown', e => {
+  if (dragNode) return;
+  isPanning = true;
+  panStart = { x:e.clientX, y:e.clientY, px:panX, py:panY };
+  canvas.classList.add('grabbing');
+});
+window.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup',   () => { endDrag(); canvas.classList.remove('grabbing'); });
+window.addEventListener('touchmove', onMove, { passive:false });
+window.addEventListener('touchend',  endDrag);
+
+// ── ZOOM ───────────────────────────────────────────────────────────
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const f = e.deltaY < 0 ? 1.1 : 0.9;
+  const cx = e.clientX, cy = e.clientY - 50;
+  panX = cx-(cx-panX)*f; panY = cy-(cy-panY)*f;
+  scale = Math.min(Math.max(scale*f, 0.2), 2);
+  applyTransform();
+}, { passive:false });
+function zoom(f) {
+  const cx = canvas.clientWidth/2, cy = canvas.clientHeight/2;
+  panX = cx-(cx-panX)*f; panY = cy-(cy-panY)*f;
+  scale = Math.min(Math.max(scale*f, 0.2), 2);
+  applyTransform();
+}
+function applyTransform() { world.style.transform = `translate(${panX}px,${panY}px) scale(${scale})`; }
+function resetView() {
+  NODES.forEach(n => { nodePos[n.id]={x:n.x,y:n.y}; nodeEls[n.id].style.left=n.x+'px'; nodeEls[n.id].style.top=n.y+'px'; });
+  panX = -400; panY = -120; scale = 0.6;
+  applyTransform(); updateEdges();
+}
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    panX = -400; panY = -120; scale = 0.6; applyTransform();
+    setTimeout(() => { document.getElementById('hint').style.opacity = 0; }, 4500);
+  }, 300);
+});
+
+// ── TOGGLE LANGUAGE ────────────────────────────────────────────────
+function toggleLang(lang) {
+  if (lang === 'jp') {
+    showJP = !showJP;
+    document.getElementById('btn-jp').classList.toggle('on', showJP);
+    document.querySelectorAll('.jp-item').forEach(el => el.classList.toggle('hide', !showJP));
+  } else {
+    showES = !showES;
+    document.getElementById('btn-es').classList.toggle('on', showES);
+    document.querySelectorAll('.es-item').forEach(el => el.classList.toggle('hide', !showES));
+  }
+  setTimeout(updateEdges, 260);
+}
+
+// ── EDIT MODAL ─────────────────────────────────────────────────────
+function openModal(e, id) {
+  e.stopPropagation(); e.preventDefault();
+  editingId = id;
+  const n = NODES.find(x => x.id === id);
+  document.getElementById('modal-title').textContent = '✎ Editar: ' + n.jpMain;
+  document.getElementById('f-icon').value = n.icon   || '';
+  document.getElementById('f-cat').value  = n.cat    || '';
+  document.getElementById('f-jp').value   = n.jpMain || '';
+  document.getElementById('f-rd').value   = n.jpRead || '';
+  document.getElementById('f-es').value   = n.es     || '';
+  const ed = document.getElementById('sub-ed');
+  ed.innerHTML = '';
+  (n.subs||[]).forEach(s => addSubRow(s));
+  document.getElementById('modal-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('f-jp').focus(), 60);
+}
+function overlayClick(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); editingId = null; }
+
+function addSubRow(s) {
+  s = s || {jp:'', rd:'', es:''};
+  const r = document.createElement('div');
+  r.className = 'sub-row';
+  r.innerHTML = `
+    <input type="text" placeholder="十字架" value="${s.jp||''}" data-f="jp">
+    <input type="text" placeholder="じゅうじか" value="${s.rd||''}" data-f="rd">
+    <input type="text" placeholder="Cruz"  value="${s.es||''}" data-f="es">
+    <button class="del-btn" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('sub-ed').appendChild(r);
+}
+
+function applyEdit() {
+  const n = NODES.find(x => x.id === editingId);
+  if (!n) return;
+  n.icon   = document.getElementById('f-icon').value.trim() || n.icon;
+  n.cat    = document.getElementById('f-cat').value.trim()  || n.cat;
+  n.jpMain = document.getElementById('f-jp').value.trim()   || n.jpMain;
+  n.jpRead = document.getElementById('f-rd').value.trim();
+  n.es     = document.getElementById('f-es').value.trim();
+  n.subs   = [];
+  document.querySelectorAll('#sub-ed .sub-row').forEach(r => {
+    const jp = r.querySelector('[data-f="jp"]').value.trim();
+    const rd = r.querySelector('[data-f="rd"]').value.trim();
+    const es = r.querySelector('[data-f="es"]').value.trim();
+    if (jp || es) n.subs.push({jp, rd, es});
+  });
+  nodeEls[n.id].innerHTML = nodeHTML(n);
+  attachEvents(nodeEls[n.id], n.id);
+  closeModal();
+  setTimeout(updateEdges, 60);
+}
+
+// ── SAVE HTML ──────────────────────────────────────────────────────
+function saveHTML() {
+  NODES.forEach(n => { n.x = Math.round(nodePos[n.id].x); n.y = Math.round(nodePos[n.id].y); });
+  const src     = document.documentElement.outerHTML;
+  const newData = 'const NODES = ' + JSON.stringify(NODES, null, 2) + ';';
+  const updated = src.replace(/const NODES = \[[\s\S]*?\];/, newData);
+  const blob = new Blob([updated], { type:'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'mapa_semana_santa_mexico.html';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  const btn = document.getElementById('btn-save');
+  btn.textContent = '✓ ¡Guardado!';
+  btn.classList.add('ok');
+  setTimeout(() => { btn.textContent = '💾 Guardar HTML'; btn.classList.remove('ok'); }, 2500);
+}
+</script>
+</body>
+</html>
